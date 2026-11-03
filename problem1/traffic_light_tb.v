@@ -11,14 +11,13 @@ module traffic_light_tb;
 
     always #5 clk = ~clk;
 
-    // expected one-hot {red, green, yellow} for tick index 0,1,2,...
     function [2:0] expected(input integer n);
         integer m;
         begin
             m = n % 3;
-            if (m == 0)      expected = 3'b100; // RED
-            else if (m == 1) expected = 3'b010; // GREEN
-            else             expected = 3'b001; // YELLOW
+            if (m == 0)      expected = 3'b100; 
+            else if (m == 1) expected = 3'b010; 
+            else             expected = 3'b001; 
         end
     endfunction
 
@@ -30,7 +29,6 @@ module traffic_light_tb;
                          n, red, green, yellow, expected(n));
             end else
                 $display("ok   tick %0d: R=%b G=%b Y=%b", n, red, green, yellow);
-            // exactly one output high
             if ((red + green + yellow) !== 1) begin
                 errors = errors + 1;
                 $display("FAIL tick %0d: outputs not one-hot", n);
@@ -42,20 +40,18 @@ module traffic_light_tb;
         $dumpfile("traffic_light.vcd");
         $dumpvars(0, traffic_light_tb);
 
-        // hold reset across a clock edge, then release
         @(posedge clk); #1;
         @(posedge clk); #1;
         reset = 0;
         #1;
-        check(0);                       // RED right after reset
-        // run 4 full cycles (12 ticks)
+        check(0);   
+        
         for (i = 1; i <= 12; i = i + 1) begin
             @(posedge clk); #1;
             check(i);
         end
 
-        // synchronous reset mid-sequence: go to GREEN, then reset -> RED
-        @(posedge clk); #1;             // tick 13 -> GREEN
+        @(posedge clk); #1;    
         reset = 1;
         @(posedge clk); #1;
         if ({red, green, yellow} !== 3'b100) begin
